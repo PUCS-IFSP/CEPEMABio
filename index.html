@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEPEMA/USP - Monitoramento Inteligente</title>
+    
+    <!-- Bibliotecas Necessárias -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        usp: { 50: '#f2fcf5', 100: '#e1f8e8', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 900: '#14532d' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .table-container::-webkit-scrollbar { height: 6px; width: 6px; }
+        .table-container::-webkit-scrollbar-track { background: transparent; }
+        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .nav-link { transition: all 0.2s ease; cursor: pointer; }
+        .nav-link.active { color: #16a34a; border-bottom: 2px solid #16a34a; font-weight: 600; }
+        .nav-link:hover:not(.active) { color: #15803d; }
+        
+        /* Gradients para os cards da Home */
+        .card-gradient-1 { background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%); }
+        .card-gradient-2 { background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%); }
+        .card-gradient-3 { background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%); }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-usp-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-md">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                    </div>
+                    <span class="font-bold text-xl tracking-tight text-slate-900">CEPEMA<span class="text-usp-600">Bio</span></span>
+                </div>
+                <div class="flex items-center space-x-8">
+                    <a onclick="switchView('home')" id="nav-home" class="nav-link active py-5 text-sm uppercase tracking-wide text-slate-600">Projeto</a>
+                    <a onclick="switchView('dashboard')" id="nav-dashboard" class="nav-link py-5 text-sm uppercase tracking-wide text-slate-600">Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="flex-grow">
+        
+        <!-- VIEW: HOME (PROJETO E INSIGHTS) -->
+        <div id="view-home" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
+            <!-- Hero Section -->
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">Monitoramento Espectral em <span class="text-transparent bg-clip-text bg-gradient-to-r from-usp-600 to-teal-500">Tempo Real</span></h1>
+                <p class="text-lg text-slate-600 mb-8 leading-relaxed">
+                    Um sistema inteligente de IoT desenvolvido para o monitoramento contínuo de cultivos de microalgas. Utilizando espectrometria óptica, sensores ambientais e algoritmos avançados (Filtro de Kalman), prevemos a taxa de crescimento celular de forma não invasiva.
+                </p>
+                <button onclick="switchView('dashboard')" class="bg-usp-600 hover:bg-usp-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg shadow-usp-500/30 transition-all transform hover:-translate-y-1">
+                    Acessar Dashboard
+                </button>
+            </div>
+
+            <!-- Insights Cards -->
+            <h2 class="text-2xl font-bold text-slate-800 mb-8 text-center">Como o sistema funciona?</h2>
+            <div class="grid md:grid-cols-3 gap-8 mb-16">
+                <!-- Card 1 -->
+                <div class="card-gradient-1 p-8 rounded-3xl border border-green-100 shadow-sm relative overflow-hidden group">
+                    <div class="w-12 h-12 bg-green-500 text-white rounded-xl flex items-center justify-center mb-6 shadow-md">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">IoT na Borda (Edge)</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">Hardware baseado no ESP32-C3 coleta dados em tempo real. A captura automatizada elimina a necessidade de amostragens manuais destrutivas e frequentes, economizando tempo e reagentes.</p>
+                </div>
+                <!-- Card 2 -->
+                <div class="card-gradient-2 p-8 rounded-3xl border border-blue-100 shadow-sm">
+                    <div class="w-12 h-12 bg-blue-500 text-white rounded-xl flex items-center justify-center mb-6 shadow-md">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">Assinatura Espectral</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">Um sensor multiespectral de 8 canais (415nm a 680nm) captura a fluorescência e absorbância das células, identificando o estado fisiológico e a concentração de pigmentos como a clorofila-a.</p>
+                </div>
+                <!-- Card 3 -->
+                <div class="card-gradient-3 p-8 rounded-3xl border border-yellow-100 shadow-sm">
+                    <div class="w-12 h-12 bg-yellow-500 text-white rounded-xl flex items-center justify-center mb-6 shadow-md">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">Filtro de Kalman Extended</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">A fusão de dados sensoriais com modelos matemáticos biocinéticos (Monod) filtra ruídos e estima dinamicamente a Biomassa (g/L) e a Taxa de Crescimento Específica (μ).</p>
+                </div>
+            </div>
+
+            <!-- Info Técnica -->
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-2 h-8 bg-usp-500 rounded-full"></div>
+                    <h2 class="text-2xl font-bold text-slate-800">Impacto Científico</h2>
+                </div>
+                <p class="text-slate-600 leading-relaxed max-w-4xl">
+                    Com a capacidade de detectar as fases da cultura (Lag, Log, Estacionária e Morte) instantaneamente, os pesquisadores do CEPEMA podem otimizar o momento exato de colheita ou de adição de nutrientes. O sistema envia pacotes HTTP periodicamente para o Google Apps Script, alimentando uma base de dados na nuvem que é consumida por esta aplicação.
+                </p>
+            </div>
+        </div>
+
+        <!-- VIEW: DASHBOARD (MÉTRICAS E GRÁFICOS) -->
+        <div id="view-dashboard" class="hidden max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+            
+            <!-- STATUS DA FROTA (NOVO) -->
+            <div class="mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-usp-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    Visão Geral da Frota
+                </h2>
+                <div class="flex flex-wrap gap-4 mb-5">
+                    <div class="px-4 py-2 bg-slate-50 text-slate-700 rounded-lg border border-slate-200 text-sm">Total Cadastrados: <span id="fleet-total" class="font-bold text-lg ml-1">0</span></div>
+                    <div class="px-4 py-2 bg-green-50 text-green-700 rounded-lg border border-green-200 text-sm">🟢 Online: <span id="fleet-online" class="font-bold text-lg ml-1">0</span></div>
+                    <div class="px-4 py-2 bg-red-50 text-red-700 rounded-lg border border-red-200 text-sm">🔴 Offline (Sem sinal > 2h): <span id="fleet-offline" class="font-bold text-lg ml-1">0</span></div>
+                </div>
+                <!-- Grid dinâmico dos sensores -->
+                <div id="fleet-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    <!-- Cards injetados via JS -->
+                </div>
+            </div>
+
+            <!-- CONTROLE DE BIORREATORES -->
+            <div class="mb-8 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                    </div>
+                    <div class="flex-grow">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Biorreator Ativo</label>
+                        <select id="sensor-select" onchange="changeSensor()" class="w-full md:w-64 border-none bg-transparent text-slate-900 font-bold text-lg focus:ring-0 cursor-pointer outline-none">
+                            <!-- Injetado via JS -->
+                        </select>
+                    </div>
+                </div>
+                <button onclick="toggleAddSensorForm()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-5 rounded-xl transition-colors text-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Novo Biorreator
+                </button>
+            </div>
+
+            <!-- FORMULÁRIO DE NOVO BIORREATOR -->
+            <div id="add-sensor-form" class="hidden mb-8 bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-inner">
+                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-usp-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Cadastrar Novo Biorreator
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Nome de Identificação</label>
+                        <input type="text" id="new-sensor-name" placeholder="Ex: Tanque Principal" class="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-usp-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">ID da Planilha (Google Sheets)</label>
+                        <input type="text" id="new-sensor-id" placeholder="Ex: 2PACX-1vTK..." class="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-usp-500 outline-none">
+                        <p class="text-xs text-slate-500 mt-1">Trecho entre /d/e/ e /pub na URL.</p>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="saveNewSensor()" class="bg-usp-600 hover:bg-usp-700 text-white font-semibold py-2 px-6 rounded-xl transition-colors">Salvar Cadastro</button>
+                    <button onclick="toggleAddSensorForm()" class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold py-2 px-6 rounded-xl transition-colors">Cancelar</button>
+                </div>
+            </div>
+
+            <div id="loading" class="flex flex-col justify-center items-center h-64 text-slate-500">
+                <svg class="animate-spin h-10 w-10 text-usp-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <p class="font-medium">Sincronizando com sensores...</p>
+            </div>
+
+            <div id="dashboard-content" class="hidden">
+                <div class="flex justify-between items-end mb-8">
+                    <div>
+                        <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Status do Biorreator</h1>
+                        <p class="text-slate-500 mt-1">Leituras em tempo real dos sensores e estimativas cinéticas.</p>
+                    </div>
+                    <div id="status-badge" class="flex items-center gap-2 bg-slate-50 text-slate-500 px-3 py-1 rounded-full text-sm font-medium border border-slate-200">
+                        <span class="animate-pulse h-3 w-3 rounded-full bg-slate-300"></span>
+                        Verificando...
+                    </div>
+                </div>
+
+                <!-- Métricas Superiores -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-16 h-16 bg-slate-50 rounded-bl-full flex items-start justify-end p-3"><svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg></div>
+                        <h4 class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">Biomassa Estimada</h4>
+                        <div class="flex items-baseline gap-2">
+                            <p id="metrica-biomassa" class="text-3xl font-extrabold text-slate-900">--</p>
+                            <span class="text-slate-500 font-medium">g/L</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-16 h-16 bg-slate-50 rounded-bl-full flex items-start justify-end p-3"><svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg></div>
+                        <h4 class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">Temperatura (DS18B20)</h4>
+                        <div class="flex items-baseline gap-2">
+                            <p id="metrica-temp" class="text-3xl font-extrabold text-slate-900">--</p>
+                            <span class="text-slate-500 font-medium">°C</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-16 h-16 bg-slate-50 rounded-bl-full flex items-start justify-end p-3"><svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div>
+                        <h4 class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">Taxa de Crescimento (μ)</h4>
+                        <div class="flex items-baseline gap-2">
+                            <p id="metrica-mu" class="text-3xl font-extrabold text-slate-900">--</p>
+                            <span class="text-slate-500 font-medium">h⁻¹</span>
+                        </div>
+                    </div>
+
+                    <div id="card-fase" class="p-6 rounded-2xl border text-left shadow-sm transition-all duration-500 flex flex-col justify-between">
+                        <h4 class="text-slate-700 text-xs font-bold uppercase tracking-wider mb-2 opacity-80">Fase Atual da Cultura</h4>
+                        <p id="metrica-fase" class="text-2xl font-black text-slate-800 capitalize">--</p>
+                    </div>
+                </div>
+
+                <!-- Gráficos Principais -->
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
+                    
+                    <!-- Cinética (Ocupa 2 colunas em telas muito grandes) -->
+                    <div class="xl:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-bold text-slate-800">Cinética de Crescimento</h2>
+                            <span class="text-xs font-medium bg-slate-100 text-slate-600 px-2 py-1 rounded">Filtro de Kalman</span>
+                        </div>
+                        <div id="grafico-cinetica" class="w-full h-[500px]"></div>
+                    </div>
+
+                    <!-- Espectro (Ocupa 1 coluna) -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                        <h2 class="text-lg font-bold text-slate-800 mb-4">Assinatura Espectral (Histórico)</h2>
+                        <div id="grafico-espectral" class="w-full flex-grow min-h-[300px]"></div>
+                    </div>
+                </div>
+
+                <!-- Leituras Instantâneas dos Canais -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-8">
+                    <h2 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                        Fluorescência Instantânea (AS726x)
+                    </h2>
+                    <div id="grid-canais" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+                        <!-- Cards injetados pelo JS -->
+                    </div>
+                </div>
+                
+                <!-- Tabela Oculta (Dados Brutos) -->
+                <details class="mb-4 bg-white border border-slate-200 rounded-2xl overflow-hidden group">
+                    <summary class="cursor-pointer bg-slate-50 p-5 font-semibold text-slate-700 hover:bg-slate-100 transition-colors list-none flex justify-between items-center">
+                        Tabela de Dados Brutos
+                        <svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </summary>
+                    <div class="p-0 bg-white overflow-x-auto table-container border-t border-slate-200">
+                        <table id="tabela-dados" class="w-full text-sm text-left whitespace-nowrap">
+                            <thead class="text-xs text-slate-500 uppercase bg-slate-50">
+                                <tr id="tabela-head"></tr>
+                            </thead>
+                            <tbody id="tabela-body" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </details>
+
+                <div id="rodape-data" class="text-center text-slate-400 text-sm mt-8">
+                    Última sincronização: --
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- LÓGICA DE NAVEGAÇÃO ---
+        function switchView(viewId) {
+            // Esconde todas
+            document.getElementById('view-home').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.add('hidden');
+            
+            // Remove active dos botões
+            document.getElementById('nav-home').classList.remove('active');
+            document.getElementById('nav-dashboard').classList.remove('active');
+            
+            // Mostra a selecionada
+            document.getElementById('view-' + viewId).classList.remove('hidden');
+            document.getElementById('nav-' + viewId).classList.add('active');
+
+            // Se for dashboard e precisar redimensionar gráficos (correção de bug do Plotly em divs escondidas)
+            if(viewId === 'dashboard' && dashboardLoaded) {
+                window.dispatchEvent(new Event('resize'));
+            }
+        }
+
+        // --- LÓGICA DO DASHBOARD ---
+        let dashboardLoaded = false;
+        
+        // Cores modernizadas para as fases
+        const CORES_FASES = {
+            'Lag_Phase': { bg: '#f0f9ff', border: '#bae6fd', text: '#0284c7' }, // Sky
+            'Log_Phase': { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' }, // Green
+            'Stationary': { bg: '#fffbeb', border: '#fef08a', text: '#d97706' }, // Amber
+            'Death_Phase': { bg: '#fef2f2', border: '#fecaca', text: '#dc2626' }, // Red
+            'Iniciando': { bg: '#f8fafc', border: '#e2e8f0', text: '#475569' }, // Slate
+            'N/A': { bg: '#ffffff', border: '#e2e8f0', text: '#94a3b8' }
+        };
+
+        const DADOS_CANAIS = {
+            'F1': {onda: '415nm', cor: '#6366f1'}, // Indigo
+            'F2': {onda: '445nm', cor: '#3b82f6'}, // Blue
+            'F3': {onda: '480nm', cor: '#0ea5e9'}, // Sky
+            'F4': {onda: '515nm', cor: '#10b981'}, // Emerald
+            'F5': {onda: '555nm', cor: '#84cc16'}, // Lime
+            'F6': {onda: '590nm', cor: '#eab308'}, // Yellow
+            'F7': {onda: '630nm', cor: '#f97316'}, // Orange
+            'F8': {onda: '680nm', cor: '#ef4444'}  // Red
+        };
+
+        // --- SISTEMA DE SENSORES (LocalStorage) ---
+        const DEFAULT_SENSORS = {
+            "Biorreator Principal": "2PACX-1vTK-XCD5Ye8W5e0Cz4NA1inrAsiV2VGTRliyN9KbTsQp1NOI0zBOkhzVnwNFCTkPTNRpyXGa-XS06vP"
+        };
+        let biorreatores = JSON.parse(localStorage.getItem('biorreatores_db')) || DEFAULT_SENSORS;
+        let activeSensorId = Object.values(biorreatores)[0];
+        let refreshIntervalId = null;
+
+        function initSensorsDropdown() {
+            const select = document.getElementById('sensor-select');
+            select.innerHTML = '';
+            for (const [nome, id] of Object.entries(biorreatores)) {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = nome;
+                if (id === activeSensorId) option.selected = true;
+                select.appendChild(option);
+            }
+        }
+
+        function changeSensor() {
+            activeSensorId = document.getElementById('sensor-select').value;
+            document.getElementById('loading').style.display = 'flex';
+            document.getElementById('dashboard-content').style.display = 'none';
+            loadDashboardData();
+        }
+
+        function toggleAddSensorForm() {
+            const form = document.getElementById('add-sensor-form');
+            form.classList.toggle('hidden');
+            document.getElementById('new-sensor-name').value = '';
+            document.getElementById('new-sensor-id').value = '';
+        }
+
+        function saveNewSensor() {
+            const nome = document.getElementById('new-sensor-name').value.trim();
+            const id = document.getElementById('new-sensor-id').value.trim();
+            
+            if (!nome || !id) {
+                alert("Por favor, preencha o Nome e o ID da planilha.");
+                return;
+            }
+            
+            biorreatores[nome] = id;
+            localStorage.setItem('biorreatores_db', JSON.stringify(biorreatores));
+            
+            activeSensorId = id;
+            initSensorsDropdown();
+            toggleAddSensorForm();
+            changeSensor();
+            updateFleetStatus(); // Atualiza a frota ao cadastrar
+        }
+
+        function parseDate(dateStr) {
+            if(!dateStr) return null;
+            let parts = dateStr.trim().split(/[\s/:]+/);
+            if(parts.length >= 3) {
+                return `${parts[2]}-${parts[1]}-${parts[0]} ${parts[3]||'00'}:${parts[4]||'00'}:${parts[5]||'00'}`;
+            }
+            return dateStr;
+        }
+
+        // --- LÓGICA DE STATUS DA FROTA (NOVO) ---
+        function updateFleetStatus() {
+            const grid = document.getElementById('fleet-grid');
+            grid.innerHTML = '';
+            const entries = Object.entries(biorreatores);
+            document.getElementById('fleet-total').innerText = entries.length;
+
+            let onlineCount = 0;
+            let offlineCount = 0;
+
+            entries.forEach(([nome, id]) => {
+                const cardId = `fleet-card-${id}`;
+                // Renderiza o card inicialmente como "Carregando"
+                grid.innerHTML += `
+                    <div id="${cardId}" onclick="selectSensorFromFleet('${id}')" class="p-3 border border-slate-200 rounded-xl flex items-center justify-between bg-slate-50 opacity-70 cursor-pointer hover:bg-slate-100 transition-colors shadow-sm">
+                        <span class="text-xs font-semibold text-slate-700 truncate mr-2" title="${nome}">${nome}</span>
+                        <span class="animate-pulse w-3 h-3 rounded-full bg-slate-300 flex-shrink-0"></span>
+                    </div>
+                `;
+
+                // Busca o status individualmente
+                Papa.parse(`https://docs.google.com/spreadsheets/d/e/${id}/pub?output=csv`, {
+                    download: true,
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        const card = document.getElementById(cardId);
+                        if (!card) return;
+                        
+                        let isOnline = false;
+                        if (results.data && results.data.length > 0) {
+                            const lastRow = results.data[results.data.length - 1];
+                            const dateKey = Object.keys(lastRow)[0]; // Pega a primeira coluna (Data_Hora)
+                            const lastDateStr = parseDate(lastRow[dateKey]); 
+                            
+                            if (lastDateStr) {
+                                // Troca - por / para evitar bugs de timezone no safari/mobile
+                                const lastTime = new Date(lastDateStr.replace(/-/g, '/')).getTime();
+                                const now = new Date().getTime();
+                                // Considera ONLINE se a última leitura foi há menos de 2 horas (7.200.000 ms)
+                                if (!isNaN(lastTime) && (now - lastTime) < 7200000) {
+                                    isOnline = true;
+                                } else if (isNaN(lastTime)) {
+                                    isOnline = true; // Fallback se a data estiver num formato não reconhecido
+                                }
+                            }
+                        }
+
+                        if (isOnline) {
+                            onlineCount++;
+                            card.className = `p-3 border border-green-200 rounded-xl flex items-center justify-between bg-green-50 cursor-pointer hover:bg-green-100 transition-colors shadow-sm`;
+                            card.innerHTML = `
+                                <span class="text-xs font-semibold text-green-800 truncate mr-2" title="${nome}">${nome}</span>
+                                <span class="relative flex h-3 w-3 flex-shrink-0"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span></span>
+                            `;
+                        } else {
+                            offlineCount++;
+                            card.className = `p-3 border border-red-200 rounded-xl flex items-center justify-between bg-red-50 cursor-pointer hover:bg-red-100 transition-colors shadow-sm`;
+                            card.innerHTML = `
+                                <span class="text-xs font-semibold text-red-800 truncate mr-2" title="${nome}">${nome}</span>
+                                <span class="h-3 w-3 rounded-full bg-red-500 flex-shrink-0 shadow-[0_0_5px_rgba(239,68,68,0.6)]"></span>
+                            `;
+                        }
+                        
+                        document.getElementById('fleet-online').innerText = onlineCount;
+                        document.getElementById('fleet-offline').innerText = offlineCount;
+                    },
+                    error: function() {
+                        const card = document.getElementById(cardId);
+                        if (card) {
+                            offlineCount++;
+                            card.className = `p-3 border border-red-200 rounded-xl flex items-center justify-between bg-red-50 cursor-pointer hover:bg-red-100 transition-colors shadow-sm`;
+                            card.innerHTML = `
+                                <span class="text-xs font-semibold text-red-800 truncate mr-2" title="${nome}">${nome}</span>
+                                <span class="h-3 w-3 rounded-full bg-red-500 flex-shrink-0 shadow-[0_0_5px_rgba(239,68,68,0.6)]"></span>
+                            `;
+                            document.getElementById('fleet-offline').innerText = offlineCount;
+                        }
+                    }
+                });
+            });
+        }
+
+        // Função para atalho: Clicar no card da frota para abrir o dashboard dele
+        function selectSensorFromFleet(id) {
+            document.getElementById('sensor-select').value = id;
+            changeSensor();
+        }
+
+        function loadDashboardData() {
+            if (!activeSensorId) return;
+            const dynamicUrl = `https://docs.google.com/spreadsheets/d/e/${activeSensorId}/pub?output=csv`;
+
+            Papa.parse(dynamicUrl, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    if(results.data.length === 0) {
+                        document.getElementById('loading').innerHTML = "<p>Nenhum dado encontrado na planilha.</p>";
+                        return;
+                    }
+
+                    let datas = [];
+                    let biomassa = [];
+                    let mu = [];
+                    let espectro = {F1:[], F2:[], F3:[], F4:[], F5:[], F6:[], F7:[], F8:[]};
+                    
+                    let colunasOriginais = Object.keys(results.data[0]).map(k => k.trim());
+                    let keyDate = Object.keys(results.data[0])[0]; 
+                    
+                    results.data.forEach(row => {
+                        let cleanRow = {};
+                        for (let k in row) cleanRow[k.trim()] = row[k];
+                        
+                        datas.push(parseDate(cleanRow[keyDate.trim()]));
+                        biomassa.push(parseFloat(cleanRow['Biomass']) || 0);
+                        mu.push(parseFloat(cleanRow['Mu']) || 0);
+                        
+                        Object.keys(espectro).forEach(ch => {
+                            espectro[ch].push(parseFloat(cleanRow[ch]) || 0);
+                        });
+                    });
+
+                    let ultimoRaw = results.data[results.data.length - 1];
+                    let ultimo = {};
+                    for (let k in ultimoRaw) ultimo[k.trim()] = ultimoRaw[k];
+
+                    // --- ATUALIZAR MÉTRICAS ---
+                    document.getElementById('metrica-biomassa').innerText = (parseFloat(ultimo['Biomass']) || 0).toFixed(4);
+                    document.getElementById('metrica-temp').innerText = (parseFloat(ultimo['Temp']) || 0).toFixed(2);
+                    document.getElementById('metrica-mu').innerText = (parseFloat(ultimo['Mu']) || 0).toFixed(4);
+                    
+                    let faseAtual = ultimo['State'] || 'N/A';
+                    let configFase = CORES_FASES[faseAtual] || CORES_FASES['N/A'];
+                    
+                    document.getElementById('metrica-fase').innerText = faseAtual.replace(/_/g, ' ');
+                    document.getElementById('metrica-fase').style.color = configFase.text;
+                    
+                    let cardFase = document.getElementById('card-fase');
+                    cardFase.style.backgroundColor = configFase.bg;
+                    cardFase.style.borderColor = configFase.border;
+
+                    // --- PLOTLY: CONFIG GERAL ---
+                    let layoutConfig = {
+                        font: { family: 'Inter, sans-serif', color: '#64748b' },
+                        plot_bgcolor: "transparent", 
+                        paper_bgcolor: "transparent",
+                        margin: { l: 50, r: 20, t: 20, b: 40 },
+                    };
+
+                    // --- GRÁFICO 1: CINÉTICA ---
+                    let traceBio = { 
+                        x: datas, y: biomassa, name: 'Biomassa', 
+                        mode: 'lines', line: {color: '#16a34a', width: 3, shape: 'spline'},
+                        fill: 'tozeroy', fillcolor: 'rgba(22, 163, 74, 0.1)'
+                    };
+                    let traceMu = { 
+                        x: datas, y: mu, name: 'Taxa μ', 
+                        mode: 'lines', line: {color: '#0ea5e9', width: 2, shape: 'spline'}, yaxis: 'y2' 
+                    };
+                    
+                    let layoutCinetica = {
+                        ...layoutConfig,
+                        showlegend: false,
+                        grid: { rows: 2, columns: 1, pattern: 'independent' },
+                        yaxis: { domain: [0.55, 1], title: {text: 'Biomassa (g/L)', font:{size:11}}, gridcolor: "#f1f5f9", zerolinecolor: '#e2e8f0' },
+                        yaxis2: { domain: [0, 0.45], title: {text: 'Taxa μ (h⁻¹)', font:{size:11}}, gridcolor: "#f1f5f9", zerolinecolor: '#e2e8f0' },
+                        xaxis: { showticklabels: false, showgrid: false },
+                        xaxis2: { gridcolor: "#f1f5f9", anchor: 'y2' },
+                        hovermode: 'x unified'
+                    };
+                    traceMu.xaxis = 'x2';
+                    Plotly.newPlot('grafico-cinetica', [traceBio, traceMu], layoutCinetica, {responsive: true, displayModeBar: false});
+
+                    // --- GRÁFICO 2: ESPECTRAL ---
+                    let tracesEspectrais = Object.keys(espectro).map(canal => {
+                        return {
+                            x: datas, y: espectro[canal], name: canal, 
+                            mode: 'none', stackgroup: 'one', 
+                            fillcolor: DADOS_CANAIS[canal].cor
+                        }
+                    });
+
+                    let layoutEspectral = {
+                        ...layoutConfig,
+                        showlegend: false,
+                        xaxis: { gridcolor: "#f1f5f9" },
+                        yaxis: { gridcolor: "#f1f5f9" },
+                        hovermode: 'x unified'
+                    };
+                    Plotly.newPlot('grafico-espectral', tracesEspectrais, layoutEspectral, {responsive: true, displayModeBar: false});
+
+                    // --- PAINEL DE CANAIS INSTANTÂNEOS ---
+                    let gridCanaisHtml = '';
+                    Object.keys(DADOS_CANAIS).forEach(canal => {
+                        let info = DADOS_CANAIS[canal];
+                        let val = Math.round(parseFloat(ultimo[canal]) || 0);
+                        // Convert hex to rgb for background opacity
+                        let r = parseInt(info.cor.slice(1, 3), 16), g = parseInt(info.cor.slice(3, 5), 16), b = parseInt(info.cor.slice(5, 7), 16);
+                        let bgOpaco = `rgba(${r},${g},${b},0.1)`;
+
+                        gridCanaisHtml += `
+                        <div style="background-color: ${bgOpaco}; border-bottom-color: ${info.cor}" class="p-3 rounded-xl border-b-4 text-center">
+                            <span class="text-slate-600 text-[10px] font-bold uppercase">${canal} <br><span class="opacity-70">${info.onda}</span></span><br>
+                            <span style="color: ${info.cor}" class="text-xl font-black mt-1 block">${val}</span> 
+                        </div>`;
+                    });
+                    document.getElementById('grid-canais').innerHTML = gridCanaisHtml;
+
+                    // --- TABELA DE DADOS BRUTOS ---
+                    let reversedData = [...results.data].reverse();
+                    let theadHtml = colunasOriginais.map(col => `<th class="px-4 py-3 bg-slate-50 sticky top-0 font-semibold tracking-wider">${col}</th>`).join('');
+                    document.getElementById('tabela-head').innerHTML = theadHtml;
+
+                    let tbodyHtml = reversedData.slice(0, 30).map(row => { 
+                        let cols = colunasOriginais.map(col => `<td class="px-4 py-3 group-hover:bg-slate-50 transition-colors">${row[col] || ''}</td>`).join('');
+                        return `<tr class="hover:bg-slate-50">${cols}</tr>`;
+                    }).join('');
+                    document.getElementById('tabela-body').innerHTML = tbodyHtml;
+
+                    let agora = new Date().toLocaleString('pt-BR');
+                    document.getElementById('rodape-data').innerText = `Última sincronização do banco de dados: ${agora}`;
+
+                    // --- ATUALIZA STATUS BADGE INDIVIDUAL ---
+                    let isDashboardOnline = false;
+                    if (datas.length > 0) {
+                        const lastTimeDash = new Date(datas[datas.length - 1].replace(/-/g, '/')).getTime();
+                        const nowDash = new Date().getTime();
+                        if (!isNaN(lastTimeDash) && (nowDash - lastTimeDash) < 7200000) {
+                            isDashboardOnline = true;
+                        } else if (isNaN(lastTimeDash)) {
+                            isDashboardOnline = true;
+                        }
+                    }
+
+                    const badge = document.getElementById('status-badge');
+                    if (isDashboardOnline) {
+                        badge.className = "flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm font-medium border border-green-200";
+                        badge.innerHTML = `<span class="relative flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span></span> Online`;
+                    } else {
+                        badge.className = "flex items-center gap-2 bg-red-50 text-red-700 px-3 py-1 rounded-full text-sm font-medium border border-red-200";
+                        badge.innerHTML = `<span class="h-3 w-3 rounded-full bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.6)]"></span> Offline`;
+                    }
+
+                    // --- EXIBIR DASHBOARD ---
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('dashboard-content').style.display = 'block';
+                    dashboardLoaded = true;
+                    
+                    // Dispara resize para o Plotly se ajustar perfeitamente
+                    window.dispatchEvent(new Event('resize'));
+                },
+                error: function(err) {
+                    document.getElementById('loading').innerHTML = `<p class="text-red-500 font-semibold">Erro ao ler planilha. Verifique se o ID inserido é válido ou se a planilha está publicada na web.</p>`;
+                }
+            });
+        }
+
+        // Inicializa o dropdown e carrega os dados
+        initSensorsDropdown();
+        updateFleetStatus();
+        loadDashboardData();
+        
+        // Mantém o loop de atualização
+        if (refreshIntervalId) clearInterval(refreshIntervalId);
+        refreshIntervalId = setInterval(() => {
+            loadDashboardData();
+            updateFleetStatus();
+        }, 300000); // 5 min
+    </script>
+</body>
+</html>
+
