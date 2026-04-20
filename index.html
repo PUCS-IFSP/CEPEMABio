@@ -54,6 +54,7 @@
                 <div class="flex items-center space-x-8">
                     <a onclick="switchView('home')" id="nav-home" class="nav-link active py-5 text-sm uppercase tracking-wide text-slate-600">Projeto</a>
                     <a onclick="switchView('dashboard')" id="nav-dashboard" class="nav-link py-5 text-sm uppercase tracking-wide text-slate-600">Dashboard</a>
+                    <a onclick="switchView('settings')" id="nav-settings" class="nav-link py-5 text-sm uppercase tracking-wide text-slate-600">Configurações</a>
                 </div>
             </div>
         </div>
@@ -148,33 +149,6 @@
                             <!-- Injetado via JS -->
                         </select>
                     </div>
-                </div>
-                <button onclick="toggleAddSensorForm()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-5 rounded-xl transition-colors text-sm flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Novo Biorreator
-                </button>
-            </div>
-
-            <!-- FORMULÁRIO DE NOVO BIORREATOR -->
-            <div id="add-sensor-form" class="hidden mb-8 bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-inner">
-                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-usp-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    Cadastrar Novo Biorreator
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Nome de Identificação</label>
-                        <input type="text" id="new-sensor-name" placeholder="Ex: Tanque Principal" class="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-usp-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">ID da Planilha (Google Sheets)</label>
-                        <input type="text" id="new-sensor-id" placeholder="Ex: 2PACX-1vTK..." class="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-usp-500 outline-none">
-                        <p class="text-xs text-slate-500 mt-1">Trecho entre /d/e/ e /pub na URL.</p>
-                    </div>
-                </div>
-                <div class="flex gap-3">
-                    <button onclick="saveNewSensor()" class="bg-usp-600 hover:bg-usp-700 text-white font-semibold py-2 px-6 rounded-xl transition-colors">Salvar Cadastro</button>
-                    <button onclick="toggleAddSensorForm()" class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold py-2 px-6 rounded-xl transition-colors">Cancelar</button>
                 </div>
             </div>
 
@@ -281,6 +255,63 @@
                 </div>
             </div>
         </div>
+
+        <!-- VIEW: SETTINGS (CONFIGURAÇÕES) -->
+        <div id="view-settings" class="hidden max-w-[1000px] mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Gerenciamento de Biorreatores</h1>
+                <p class="text-slate-500 mt-1">Cadastre, edite ou remova os sensores vinculados às planilhas do Google Sheets.</p>
+            </div>
+
+            <!-- Formulário Adicionar/Editar -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative mb-8">
+                <div id="form-mode-badge" class="absolute top-0 right-0 mt-4 mr-6 text-xs font-bold text-usp-600 bg-usp-50 px-2 py-1 rounded-md hidden">Modo de Edição</div>
+                <h4 id="sensor-form-title" class="text-md font-bold text-slate-800 mb-5 flex items-center gap-2">
+                    <span>➕</span> Adicionar Novo Biorreator
+                </h4>
+                <input type="hidden" id="edit-original-name" value="">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Nome de Identificação</label>
+                        <input type="text" id="new-sensor-name" placeholder="Ex: Tanque Principal" class="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-usp-500 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">ID da Planilha (Google Sheets)</label>
+                        <input type="text" id="new-sensor-id" placeholder="Ex: 1wcjHlD0..." class="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-usp-500 outline-none transition-all font-mono text-sm">
+                        <div class="mt-2 text-xs text-slate-500">
+                            <p class="mb-1"><strong>Onde encontro o ID?</strong> Copie apenas a parte destacada do link da planilha:</p>
+                            <div class="font-mono bg-slate-50 border border-slate-200 p-2 rounded-lg break-all text-[10.5px] leading-relaxed">
+                                https://docs.google.com/spreadsheets/d/<span class="bg-yellow-200 text-yellow-900 font-bold px-1 rounded">1wcjHlD0...EXEMPLO...</span>/edit
+                            </div>
+                            <p class="mt-2 text-red-500 font-medium">⚠️ Importante: A planilha deve estar compartilhada como "Qualquer pessoa com o link".</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="saveSensor()" id="save-sensor-btn" class="bg-usp-600 hover:bg-usp-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-colors shadow-sm">Salvar Cadastro</button>
+                    <button onclick="cancelEdit()" id="cancel-edit-btn" class="hidden bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold py-2.5 px-6 rounded-xl transition-colors">Cancelar Edição</button>
+                </div>
+            </div>
+
+            <!-- Lista de Cadastrados -->
+            <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left whitespace-nowrap">
+                        <thead class="bg-slate-50 text-slate-600 uppercase text-xs font-semibold tracking-wider">
+                            <tr>
+                                <th class="px-6 py-4">Nome do Biorreator</th>
+                                <th class="px-6 py-4">ID da Planilha</th>
+                                <th class="px-6 py-4 text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="manage-sensors-list" class="divide-y divide-slate-100">
+                            <!-- Lista injetada via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </main>
 
     <script>
@@ -289,10 +320,12 @@
             // Esconde todas
             document.getElementById('view-home').classList.add('hidden');
             document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-settings').classList.add('hidden');
             
             // Remove active dos botões
             document.getElementById('nav-home').classList.remove('active');
             document.getElementById('nav-dashboard').classList.remove('active');
+            document.getElementById('nav-settings').classList.remove('active');
             
             // Mostra a selecionada
             document.getElementById('view-' + viewId).classList.remove('hidden');
@@ -301,6 +334,12 @@
             // Se for dashboard e precisar redimensionar gráficos (correção de bug do Plotly em divs escondidas)
             if(viewId === 'dashboard' && dashboardLoaded) {
                 window.dispatchEvent(new Event('resize'));
+            }
+            
+            // Inicializa a tela de configurações
+            if(viewId === 'settings') {
+                renderManageList();
+                cancelEdit();
             }
         }
 
@@ -330,7 +369,7 @@
 
         // --- SISTEMA DE SENSORES (LocalStorage) ---
         const DEFAULT_SENSORS = {
-            "Biorreator Principal": "2PACX-1vTK-XCD5Ye8W5e0Cz4NA1inrAsiV2VGTRliyN9KbTsQp1NOI0zBOkhzVnwNFCTkPTNRpyXGa-XS06vP"
+            "Biorreator Exemplo": "1QG7N05M07uL2eL8L3hW9v9g6c9k0_0_J_J_J_J_J_J" // ID fictício para não quebrar de primeira
         };
         let biorreatores = JSON.parse(localStorage.getItem('biorreatores_db')) || DEFAULT_SENSORS;
         let activeSensorId = Object.values(biorreatores)[0];
@@ -349,36 +388,140 @@
         }
 
         function changeSensor() {
-            activeSensorId = document.getElementById('sensor-select').value;
+            const select = document.getElementById('sensor-select');
+            if(select.options.length === 0) {
+                activeSensorId = null;
+                return;
+            }
+            activeSensorId = select.value;
+            
+            document.getElementById('loading').innerHTML = `
+                <svg class="animate-spin h-10 w-10 text-usp-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <p class="font-medium">Sincronizando com sensores...</p>
+            `;
             document.getElementById('loading').style.display = 'flex';
             document.getElementById('dashboard-content').style.display = 'none';
             loadDashboardData();
         }
 
-        function toggleAddSensorForm() {
-            const form = document.getElementById('add-sensor-form');
-            form.classList.toggle('hidden');
-            document.getElementById('new-sensor-name').value = '';
-            document.getElementById('new-sensor-id').value = '';
+        // --- SISTEMA DE GERENCIAMENTO (CRIAR, EDITAR, EXCLUIR) ---
+        function renderManageList() {
+            const tbody = document.getElementById('manage-sensors-list');
+            tbody.innerHTML = '';
+            
+            for (const [nome, id] of Object.entries(biorreatores)) {
+                const isAtivo = (id === activeSensorId) ? '<span class="ml-2 bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Ativo</span>' : '';
+                
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-5 py-3 font-semibold text-slate-800">${nome} ${isAtivo}</td>
+                        <td class="px-5 py-3 text-slate-500 font-mono text-xs truncate max-w-xs" title="${id}">${id}</td>
+                        <td class="px-5 py-3 text-right">
+                            <button onclick="editSensor('${nome}')" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded-lg transition-colors mr-1" title="Editar">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            </button>
+                            <button onclick="deleteSensor('${nome}')" class="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Excluir">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            if (Object.keys(biorreatores).length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="px-5 py-8 text-center text-slate-500 font-medium">Nenhum biorreator cadastrado no momento.</td></tr>`;
+            }
         }
 
-        function saveNewSensor() {
+        function editSensor(nome) {
+            const id = biorreatores[nome];
+            document.getElementById('edit-original-name').value = nome;
+            document.getElementById('new-sensor-name').value = nome;
+            document.getElementById('new-sensor-id').value = id;
+            
+            document.getElementById('sensor-form-title').innerHTML = `<span>✏️</span> Editar Biorreator`;
+            document.getElementById('save-sensor-btn').innerText = "Atualizar Cadastro";
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+            document.getElementById('form-mode-badge').classList.remove('hidden');
+            
+            // Dá um scroll suave até o formulário
+            document.getElementById('sensor-form-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function cancelEdit() {
+            document.getElementById('edit-original-name').value = '';
+            document.getElementById('new-sensor-name').value = '';
+            document.getElementById('new-sensor-id').value = '';
+            
+            document.getElementById('sensor-form-title').innerHTML = `<span>➕</span> Adicionar Novo Biorreator`;
+            document.getElementById('save-sensor-btn').innerText = "Salvar Cadastro";
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+            document.getElementById('form-mode-badge').classList.add('hidden');
+        }
+
+        function saveSensor() {
             const nome = document.getElementById('new-sensor-name').value.trim();
             const id = document.getElementById('new-sensor-id').value.trim();
+            const originalName = document.getElementById('edit-original-name').value;
             
             if (!nome || !id) {
                 alert("Por favor, preencha o Nome e o ID da planilha.");
                 return;
             }
             
+            // Se estiver editando e o nome mudou, deleta o registro antigo
+            if (originalName && originalName !== nome) {
+                delete biorreatores[originalName];
+            }
+            
             biorreatores[nome] = id;
             localStorage.setItem('biorreatores_db', JSON.stringify(biorreatores));
             
-            activeSensorId = id;
+            // Atualiza o activeSensorId se estavamos editando o ativo ou se nao havia nenhum ativo
+            if (!activeSensorId || (originalName && id === activeSensorId) || (originalName && biorreatores[originalName] === activeSensorId)) {
+                activeSensorId = id;
+            } else if (originalName === Object.keys(biorreatores).find(key => biorreatores[key] === activeSensorId)) {
+                activeSensorId = id;
+            }
+            
             initSensorsDropdown();
-            toggleAddSensorForm();
-            changeSensor();
-            updateFleetStatus(); // Atualiza a frota ao cadastrar
+            renderManageList();
+            updateFleetStatus();
+            cancelEdit();
+            changeSensor(); // Recarrega os dados com o novo ID
+        }
+
+        function deleteSensor(nome) {
+            if (confirm(`Tem certeza absoluta que deseja excluir o biorreator "${nome}"?\n\nIsso apenas removerá o atalho do painel, os dados continuarão seguros no seu Google Sheets.`)) {
+                const idToDelete = biorreatores[nome];
+                const isDeletingActive = (idToDelete === activeSensorId);
+                
+                delete biorreatores[nome];
+                localStorage.setItem('biorreatores_db', JSON.stringify(biorreatores));
+                
+                if (isDeletingActive) {
+                    const keys = Object.keys(biorreatores);
+                    activeSensorId = keys.length > 0 ? biorreatores[keys[0]] : null;
+                }
+                
+                initSensorsDropdown();
+                renderManageList();
+                updateFleetStatus();
+                
+                if (activeSensorId) {
+                    changeSensor();
+                } else {
+                    document.getElementById('dashboard-content').style.display = 'none';
+                    document.getElementById('loading').innerHTML = `
+                        <div class="text-center">
+                            <svg class="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                            <p class="text-slate-500 font-semibold text-lg">Nenhum Biorreator Cadastrado</p>
+                            <p class="text-slate-400 text-sm mt-1">Abra o menu "Gerenciar Sensores" para adicionar uma nova planilha.</p>
+                        </div>
+                    `;
+                    document.getElementById('loading').style.display = 'flex';
+                }
+            }
         }
 
         function parseDate(dateStr) {
@@ -410,8 +553,8 @@
                     </div>
                 `;
 
-                // Busca o status individualmente
-                Papa.parse(`https://docs.google.com/spreadsheets/d/e/${id}/pub?output=csv`, {
+                // Busca o status individualmente (Usando a URL de Exportação CSV padrão)
+                Papa.parse(`https://docs.google.com/spreadsheets/d/${id}/export?format=csv`, {
                     download: true,
                     header: true,
                     skipEmptyLines: true,
@@ -481,7 +624,8 @@
 
         function loadDashboardData() {
             if (!activeSensorId) return;
-            const dynamicUrl = `https://docs.google.com/spreadsheets/d/e/${activeSensorId}/pub?output=csv`;
+            // Usando a URL de Exportação CSV padrão do Google Sheets
+            const dynamicUrl = `https://docs.google.com/spreadsheets/d/${activeSensorId}/export?format=csv`;
 
             Papa.parse(dynamicUrl, {
                 download: true,
@@ -644,7 +788,7 @@
                     window.dispatchEvent(new Event('resize'));
                 },
                 error: function(err) {
-                    document.getElementById('loading').innerHTML = `<p class="text-red-500 font-semibold">Erro ao ler planilha. Verifique se o ID inserido é válido ou se a planilha está publicada na web.</p>`;
+                    document.getElementById('loading').innerHTML = `<div class="text-center"><p class="text-red-500 font-bold mb-2">Erro ao acessar os dados.</p><p class="text-slate-500 text-sm">Verifique se o ID está correto e se o link da planilha está configurado como <b>"Qualquer pessoa com o link"</b>.</p></div>`;
                 }
             });
         }
@@ -663,4 +807,5 @@
     </script>
 </body>
 </html>
+
 
