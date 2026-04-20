@@ -348,12 +348,12 @@
         
         // Cores modernizadas para as fases
         const CORES_FASES = {
-            'Lag_Phase': { bg: '#f0f9ff', border: '#bae6fd', text: '#0284c7' }, // Sky
-            'Log_Phase': { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' }, // Green
-            'Stationary': { bg: '#fffbeb', border: '#fef08a', text: '#d97706' }, // Amber
-            'Death_Phase': { bg: '#fef2f2', border: '#fecaca', text: '#dc2626' }, // Red
-            'Iniciando': { bg: '#f8fafc', border: '#e2e8f0', text: '#475569' }, // Slate
-            'N/A': { bg: '#ffffff', border: '#e2e8f0', text: '#94a3b8' }
+            'Lag_Phase': { bg: '#E1F5FE', border: '#bae6fd', text: '#0284c7' }, // Azul Claro
+            'Log_Phase': { bg: '#E8F5E9', border: '#bbf7d0', text: '#16a34a' }, // Verde Claro
+            'Stationary': { bg: '#FFFDE7', border: '#fef08a', text: '#d97706' }, // Amarelo Claro
+            'Death_Phase': { bg: '#FFEBEE', border: '#fecaca', text: '#dc2626' }, // Vermelho Claro
+            'Iniciando': { bg: '#F5F5F5', border: '#e2e8f0', text: '#475569' }, // Slate
+            'N/A': { bg: '#FFFFFF', border: '#e2e8f0', text: '#94a3b8' }
         };
 
         const DADOS_CANAIS = {
@@ -369,9 +369,10 @@
 
         // --- SISTEMA DE SENSORES (LocalStorage) ---
         const DEFAULT_SENSORS = {
-            "Biorreator Exemplo": "1QG7N05M07uL2eL8L3hW9v9g6c9k0_0_J_J_J_J_J_J" // ID fictício para não quebrar de primeira
+            "Biorreator Principal": "1wcjHlD0EXARggALWaMlyDYImyjXA4_JTjh68YTJLwpg" // O seu ID real adicionado!
         };
-        let biorreatores = JSON.parse(localStorage.getItem('biorreatores_db')) || DEFAULT_SENSORS;
+        // Alterado o nome da chave para forçar reset do localStorage e pegar o ID real
+        let biorreatores = JSON.parse(localStorage.getItem('biorreatores_db_v2')) || DEFAULT_SENSORS;
         let activeSensorId = Object.values(biorreatores)[0];
         let refreshIntervalId = null;
 
@@ -475,7 +476,7 @@
             }
             
             biorreatores[nome] = id;
-            localStorage.setItem('biorreatores_db', JSON.stringify(biorreatores));
+            localStorage.setItem('biorreatores_db_v2', JSON.stringify(biorreatores));
             
             // Atualiza o activeSensorId se estavamos editando o ativo ou se nao havia nenhum ativo
             if (!activeSensorId || (originalName && id === activeSensorId) || (originalName && biorreatores[originalName] === activeSensorId)) {
@@ -497,7 +498,7 @@
                 const isDeletingActive = (idToDelete === activeSensorId);
                 
                 delete biorreatores[nome];
-                localStorage.setItem('biorreatores_db', JSON.stringify(biorreatores));
+                localStorage.setItem('biorreatores_db_v2', JSON.stringify(biorreatores));
                 
                 if (isDeletingActive) {
                     const keys = Object.keys(biorreatores);
@@ -668,7 +669,15 @@
                     document.getElementById('metrica-mu').innerText = (parseFloat(ultimo['Mu']) || 0).toFixed(4);
                     
                     let faseAtual = ultimo['State'] || 'N/A';
-                    let configFase = CORES_FASES[faseAtual] || CORES_FASES['N/A'];
+                    
+                    // Lógica robusta para identificar a fase (ignora espaços e letras maiúsculas/minúsculas)
+                    let configFase = CORES_FASES['N/A'];
+                    let faseNorm = faseAtual.toString().toLowerCase();
+                    if (faseNorm.includes('lag')) configFase = CORES_FASES['Lag_Phase'];
+                    else if (faseNorm.includes('log')) configFase = CORES_FASES['Log_Phase'];
+                    else if (faseNorm.includes('station')) configFase = CORES_FASES['Stationary'];
+                    else if (faseNorm.includes('death')) configFase = CORES_FASES['Death_Phase'];
+                    else if (faseNorm.includes('iniciando')) configFase = CORES_FASES['Iniciando'];
                     
                     document.getElementById('metrica-fase').innerText = faseAtual.replace(/_/g, ' ');
                     document.getElementById('metrica-fase').style.color = configFase.text;
@@ -685,11 +694,13 @@
                         margin: { l: 50, r: 20, t: 20, b: 40 },
                     };
 
+                    let corLinhaBio = configFase.text !== '#94a3b8' ? configFase.text : '#16a34a';
+
                     // --- GRÁFICO 1: CINÉTICA ---
                     let traceBio = { 
                         x: datas, y: biomassa, name: 'Biomassa', 
-                        mode: 'lines', line: {color: '#16a34a', width: 3, shape: 'spline'},
-                        fill: 'tozeroy', fillcolor: 'rgba(22, 163, 74, 0.1)'
+                        mode: 'lines', line: {color: corLinhaBio, width: 3, shape: 'spline'},
+                        fill: 'tozeroy', fillcolor: 'rgba(0, 0, 0, 0.05)'
                     };
                     let traceMu = { 
                         x: datas, y: mu, name: 'Taxa μ', 
@@ -698,12 +709,13 @@
                     
                     let layoutCinetica = {
                         ...layoutConfig,
+                        plot_bgcolor: configFase.bg, // Fundo dinâmico (Semáforo Biológico)
                         showlegend: false,
                         grid: { rows: 2, columns: 1, pattern: 'independent' },
-                        yaxis: { domain: [0.55, 1], title: {text: 'Biomassa (g/L)', font:{size:11}}, gridcolor: "#f1f5f9", zerolinecolor: '#e2e8f0' },
-                        yaxis2: { domain: [0, 0.45], title: {text: 'Taxa μ (h⁻¹)', font:{size:11}}, gridcolor: "#f1f5f9", zerolinecolor: '#e2e8f0' },
+                        yaxis: { domain: [0.55, 1], title: {text: 'Biomassa (g/L)', font:{size:11}}, gridcolor: "rgba(0,0,0,0.05)", zerolinecolor: 'rgba(0,0,0,0.1)' },
+                        yaxis2: { domain: [0, 0.45], title: {text: 'Taxa μ (h⁻¹)', font:{size:11}}, gridcolor: "rgba(0,0,0,0.05)", zerolinecolor: 'rgba(0,0,0,0.1)' },
                         xaxis: { showticklabels: false, showgrid: false },
-                        xaxis2: { gridcolor: "#f1f5f9", anchor: 'y2' },
+                        xaxis2: { gridcolor: "rgba(0,0,0,0.05)", anchor: 'y2' },
                         hovermode: 'x unified'
                     };
                     traceMu.xaxis = 'x2';
